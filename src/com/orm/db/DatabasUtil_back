@@ -1,0 +1,136 @@
+package com.orm.db;
+import java.sql.*;
+import java.util.*;
+public class DatabaseUtil
+{
+private DatabaseUtil()
+{
+}
+public static Database getDatabase(Connection connection)
+{
+Database database=new Database();
+try
+{
+DatabaseMetaData databaseMetaData=connection.getMetaData();
+List<Table> tables=new ArrayList<>();
+ResultSet tableResultSet=databaseMetaData.getTables(connection.getCatalog(),null, "%", new String[] {"TABLE"});
+while(tableResultSet.next())
+{
+String tableName=tableResultSet.getString("TABLE_NAME");
+System.out.println("--------------------------------------");
+System.out.println("Processing table : " + tableName);
+Table table=new Table();
+table.setName(tableName);
+List<TableColumn> tableColumns=new ArrayList<>();
+Set<String> primaryKeys=new HashSet<>();
+System.out.println("Fetching primary keys for table : " + tableName);
+ResultSet primaryKeyResultSet=databaseMetaData.getPrimaryKeys(connection.getCatalog(),null,tableName);
+while(primaryKeyResultSet.next())
+{
+String primaryKeyColumn=primaryKeyResultSet.getString("COLUMN_NAME");
+primaryKeys.add(primaryKeyColumn);
+System.out.println("Primary Key Found : " + primaryKeyColumn);
+}
+primaryKeyResultSet.close();
+ResultSet columnResultSet=databaseMetaData.getColumns(connection.getCatalog(),null,tableName,"%");
+System.out.println("Fetching columns for table : " + tableName);
+while(columnResultSet.next())
+{
+TableColumn tableColumn=new TableColumn();
+String columnName=columnResultSet.getString("COLUMN_NAME");
+String typeName=columnResultSet.getString("TYPE_NAME");
+int columnSize=columnResultSet.getInt("COLUMN_SIZE");
+int decimalDigits=columnResultSet.getInt("DECIMAL_DIGITS");
+int nullable=columnResultSet.getInt("NULLABLE");
+String defaultValue=columnResultSet.getString("COLUMN_DEF");
+String isAutoIncrement=columnResultSet.getString("IS_AUTOINCREMENT");
+String isGenerated=columnResultSet.getString("IS_GENERATEDCOLUMN");
+
+System.out.println();
+System.out.println("Processing column : " + columnName);
+System.out.println("Type          : " + typeName);
+System.out.println("Width         : " + columnSize);
+System.out.println("Precision     : " + decimalDigits);
+System.out.println("AutoIncrement : " + isAutoIncrement);                    
+System.out.println("Default Value : " + defaultValue);
+
+tableColumn.setName(columnName);
+tableColumn.setType(typeName);
+tableColumn.setWidth(columnSize);
+tableColumn.setPrecision(decimalDigits);
+tableColumn.setHasPrimaryKeyConstraintApplied(primaryKeys.contains(columnName));
+tableColumn.setAutoIncrementable("YES".equalsIgnoreCase(isAutoIncrement));
+tableColumn.setHasNotNullConstraintApplied(nullable == DatabaseMetaData.columnNoNulls);
+tableColumn.setDefaultValue(defaultValue);
+
+//tableColumn.setHasUniqueConstraintApplied(isUniqueColumn(databaseMetaData,connection,tableName,columnName));
+tableColumns.add(tableColumn);
+
+System.out.println("Column added to table object");
+
+}
+columnResultSet.close();
+table.setTableColumns(tableColumns);
+tables.add(table);
+}
+tableResultSet.close();
+database.setTables(tables);
+
+System.out.println("--------------------------------------");
+System.out.println("All tables added to Database object");
+System.out.println("Total Tables Found : " + tables.size());
+System.out.println("DatabaseUtil.getDatabase() completed successfully");
+
+}catch(Exception exception)
+{
+System.out.println(exception.getMessage());
+}
+return database;
+}
+
+private static boolean isUniqueColumn(DatabaseMetaData databaseMetaData,Connection connection,String tableName,String columnName)
+{
+try
+{
+ResultSet resultSet =databaseMetaData.getIndexInfo(connection.getCatalog(),null,tableName,true,false);
+Map<String, Integer> uniqueIndexColumnCount =new HashMap<>();
+while(resultSet.next())
+{
+boolean nonUnique =resultSet.getBoolean("NON_UNIQUE");
+String indexName =resultSet.getString("INDEX_NAME");
+String indexColumnName =resultSet.getString("COLUMN_NAME");
+if(!nonUnique &&indexName != null && indexColumnName != null)
+{
+Integer count =uniqueIndexColumnCount.get(indexName);
+if(count == null)
+{
+count = 0;
+}
+uniqueIndexColumnCount.put(indexName,count + 1);
+}
+}
+resultSet.close();
+/*
+* Abhi simple case:
+* agar column unique index mein hai
+* to unique true.
+*/
+resultSet =databaseMetaData.getIndexInfo(connection.getCatalog(),null,tableName,true,false);
+while(resultSet.next())
+{
+boolean nonUnique =resultSet.getBoolean("NON_UNIQUE");
+String indexColumnName =resultSet.getString("COLUMN_NAME");
+if(!nonUnique && columnName.equals(indexColumnName))
+{
+resultSet.close();
+return true;
+}
+}
+resultSet.close();
+}catch(SQLException exception)
+{
+return false;
+}
+return false;
+}
+}
