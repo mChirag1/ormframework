@@ -4,11 +4,11 @@ class TestDBConnector
 {
 public static void main(String gg[])
 {
+try
+{
 Connection connection=DBConnector.connect();
 Database database=DatabaseUtil.getDatabase(connection);
 System.out.println(database);
-try
-{
 connection.close();
 }catch(Exception exception)
 {

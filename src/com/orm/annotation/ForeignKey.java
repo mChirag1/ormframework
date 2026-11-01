@@ -4,6 +4,6 @@ import java.lang.annotation.*;
 @Target(ElementType.FIELD)
 public @interface ForeignKey
 {
-public String entity();
-public String property();
+public String columnName();
+public String parentColumnName();
 }

@@ -1,4 +1,12 @@
-package com.orm;
+/*
+Assignment
+Make changes,
+get (2) maps related to foreign key from table
+Phase 1
+while generating private properties, constructors and setter
+and getter make the necessary changes
+*/
+package  com.orm;
 import java.io.*;
 import java.sql.*;
 import com.orm.db.*;
@@ -15,7 +23,7 @@ javaTypes=new HashMap<String,String>();
 javaTypes.put("INT","int");
 javaTypes.put("BIGINT","long");
 javaTypes.put("SMALLINT","short");
-javaTypes.put("TINYINT","byte"); 
+javaTypes.put("TINYINT","byte");
 javaTypes.put("DECIMAL","java.math.BigDecimal");
 javaTypes.put("FLOAT","float");
 javaTypes.put("DOUBLE","double");
@@ -23,8 +31,8 @@ javaTypes.put("VARCHAR","String");
 javaTypes.put("TEXT","String");
 javaTypes.put("CHAR","String");
 javaTypes.put("DATE","java.sql.Date");
-javaTypes.put("DATETIME","java.sql.Timestamp"); 
-javaTypes.put("TIMESTAMP","java.sql.Timestamp");
+javaTypes.put("DATETIME","java.sql.TimeStamp");
+javaTypes.put("TIMESTAMP","java.sql.TimeStamp");
 javaTypes.put("BOOLEAN","boolean");
 javaTypes.put("BIT","boolean");
 // add more (do it on your own)
@@ -32,7 +40,7 @@ defaultValues=new HashMap<String,String>();
 defaultValues.put("int","0");
 defaultValues.put("long","0");
 defaultValues.put("short","0");
-defaultValues.put("byte","0"); 
+defaultValues.put("byte","0");
 defaultValues.put("java.math.BigDecimal","new java.math.BigDecimal(\"0.0\")");
 defaultValues.put("float","0.0f");
 defaultValues.put("double","0.0");
@@ -40,8 +48,8 @@ defaultValues.put("String","\"\"");
 defaultValues.put("String","\"\"");
 defaultValues.put("String","\"\"");
 defaultValues.put("java.sql.Date","null");
-defaultValues.put("java.sql.Timestamp","null");
-defaultValues.put("java.sql.Timestamp","null");
+defaultValues.put("java.sql.TimeStamp","null");
+defaultValues.put("java.sql.TimeStamp","null");
 defaultValues.put("boolean","false");
 // add more (do it on your own)
 }
@@ -63,7 +71,7 @@ for(int i=0;i<args.length;++i)
 index=args[i].indexOf(':');
 if(index!=-1)
 {
-key=args[i].substring(0,index); 
+key=args[i].substring(0,index);
 if(key.equalsIgnoreCase("package-name")) packageName=args[i].substring(index+1);
 else if(key.equalsIgnoreCase("target-path")) targetPath=args[i].substring(index+1);
 }
@@ -85,10 +93,10 @@ System.out.print("package-name");
 System.out.print("\n");
 System.exit(1);
 }
-Connection connection=DBConnector.connect(); 
+Connection connection=DBConnector.connect();
 Database database=DatabaseUtil.getDatabase(connection);
 File targetDirectory=new File(targetPath);
-if(targetDirectory.exists()==false)
+if(targetDirectory.exists()==false) 
 {
 if(!targetDirectory.mkdirs())
 {
@@ -99,17 +107,17 @@ else if(!targetDirectory.isDirectory())
 {
 throw new IOException(targetDirectory+" is not a directory");
 }
-String packageDirectoryPath=packageName.replace(".",File.separator); 
+String packageDirectoryPath=packageName.replace(".",File.separator);
 File packageDirectoryFile=new File(targetPath,packageDirectoryPath);
 if(packageDirectoryFile.exists()==false)
 {
 if(packageDirectoryFile.mkdirs()==false)
 {
-throw new Exception("Unable to create package directory : "+packageName);
+throw new  Exception("Unable to create package directory : "+packageName);
 }
 }else if(packageDirectoryFile.isDirectory()==false)
 {
-throw new Exception(packageName+" path exists and is not a directory");
+throw new  Exception(packageName+" path exists and  is not a directory");
 }
 generateDTO(database,packageDirectoryFile,packageName);
 connection.close();
@@ -130,7 +138,7 @@ Vector<String> tablePrimaryKeys=new Vector<>();
 Vector<String> primaryKeys=new Vector<>();
 Vector<String> primaryKeyTypes=new Vector<>();
 List<com.orm.db.Table> tables=database.getTables();
-List<TableColumn> tableColumns;  
+List<TableColumn> tableColumns;
 if(tables.size()==0) throw new Exception("Nothing to generate");
 String javaFileName;
 File javaFile;
@@ -138,40 +146,37 @@ String defaultValue;
 String className;
 String propertyName;
 String tableName;
-RandomAccessFile randomAccessFile;
+RandomAccessFile  randomAccessFile;
 String line;
-String parentClassName;
 String javaPropertyName;
-String javaPropertyType;
+String  javaPropertyType;
 int counter;
 String classPointerName;
 String pkName,pkType;
-TableColumn tc;	
-Map<String,String> foreignKeyNamesMap;
-Map<String,ForeignKeyColumnMappings> foreignKeyColumnMappingsMap;
-String foreignKeyName;
+TableColumn tc;
 ForeignKeyColumnMappings foreignKeyColumnMappings;
+Map<String,ForeignKeyColumnMappings> foreignKeyColumnMappingsMap;
 Map<String,ParentColumn> parentColumnsMap;
+String  foreignKeyName;
+Map<String,String> foreignKeyNamesMap;
+String  parentTableColumnName;
+String  parentTableName;
 ParentColumn parentColumn;
-String parentTableName;
 for(com.orm.db.Table t:tables)
 {
+foreignKeyColumnMappingsMap=t.getForeignKeyColumnMappingsMap();
+foreignKeyNamesMap=t.getForeignKeyNamesMap();
 tablePrimaryKeys.clear();
 primaryKeys.clear();
 primaryKeyTypes.clear();
 properties.clear();
 propertyTypes.clear();
-
 tableName=t.getName();
-className=getClassName(tableName); 
-classPointerName=className.substring(0,1).toLowerCase(); 
+className=getClassName(tableName);
+classPointerName=className.substring(0,1).toLowerCase();
 if(className.length()>1) classPointerName+=className.substring(1);
 javaFileName=className+".java";
-
 tableColumns=t.getTableColumns();
-foreignKeyNamesMap=t.getForeignKeyNamesMap();
-foreignKeyColumnMappingsMap=t.getForeignKeyColumnMappingsMap();
-
 for(TableColumn tableColumn:tableColumns)
 {
 foreignKeyName=foreignKeyNamesMap.get(tableColumn.getName());
@@ -211,13 +216,8 @@ primaryKeyTypes.add(javaPropertyType);
 }
 }
 }
-
-
-
-
-
 javaFile=new File(packageDirectory,javaFileName);
-if(javaFile.exists()) javaFile.delete(); 
+if(javaFile.exists()) javaFile.delete();
 randomAccessFile=new RandomAccessFile(javaFile,"rw");
 line="package "+packageName+";\n";
 randomAccessFile.writeBytes(line);
@@ -244,7 +244,7 @@ randomAccessFile.writeBytes("\""+tablePrimaryKeys.get(index)+"\"");
 }
 randomAccessFile.writeBytes("})\n");
 }
-line="public class "+className+" implements java.io.Serializable,Comparable<"+className+">\n";
+line="public class "+className+" implements  java.io.Serializable,Comparable<"+className+">\n";
 randomAccessFile.writeBytes(line);
 line="{\n";
 randomAccessFile.writeBytes(line);
@@ -252,6 +252,9 @@ randomAccessFile.writeBytes(line);
 for(index=0;index<properties.size();++index)
 {
 tc=tableColumns.get(index);
+foreignKeyName=foreignKeyNamesMap.get(tc.getName());
+if(foreignKeyName==null)
+{
 if(tc.getHasNotNullConstraintApplied())
 {
 randomAccessFile.writeBytes("@NotNull\n");
@@ -269,14 +272,31 @@ if(tc.getHasUniqueConstraintApplied() && tc.getHasPrimaryKeyConstraintApplied()=
 {
 randomAccessFile.writeBytes("@Unique\n");
 }
-if(tc.getHasPrimaryKeyConstraintApplied())
+if(tc.getHasPrimaryKeyConstraintApplied() && tablePrimaryKeys.size()==1)
+{ 
+randomAccessFile.writeBytes("@PrimaryKey\n");
+}
+randomAccessFile.writeBytes("@Column(name=\""+tc.getName()+"\")\n");
+}
+else
+{
+foreignKeyColumnMappings=foreignKeyColumnMappingsMap.get(foreignKeyName);
+parentColumnsMap=foreignKeyColumnMappings.getParentColumnsMap();
+parentColumn=parentColumnsMap.get(tc.getName());
+if(tc.getHasNotNullConstraintApplied())
+{
+randomAccessFile.writeBytes("@NotNull\n");
+}
+if(tc.getHasUniqueConstraintApplied() && tc.getHasPrimaryKeyConstraintApplied()==false)
+{
+randomAccessFile.writeBytes("@Unique\n");
+}
+if(tc.getHasPrimaryKeyConstraintApplied() && tablePrimaryKeys.size()==1)
 {
 randomAccessFile.writeBytes("@PrimaryKey\n");
 }
-randomAccessFile.writeBytes("@Column(name=\""+tc.getName()+"\")\n"); 
-
-String propertyTypesString;
-
+randomAccessFile.writeBytes("@ForeignKey(columnName=\""+tc.getName()+"\",parentColumnName=\""+parentColumn.getName()+"\")\n");
+}
 line="private "+propertyTypes.get(index)+" "+properties.get(index)+";\n";
 randomAccessFile.writeBytes(line);
 randomAccessFile.writeBytes("\n");
@@ -290,19 +310,13 @@ index=0;
 for(String prop:properties)
 {
 defaultValue=defaultValues.get(propertyTypes.get(index));
-if(defaultValue == null)
-{
-defaultValue="null";
-}
 line="this."+prop+"="+defaultValue+";\n";
 randomAccessFile.writeBytes(line);
 ++index;
 }
 line="}\n";
 randomAccessFile.writeBytes(line);
-
-
-// parameterized constructor starts
+// parameterized  constructor starts
 line="public "+className+"(";
 randomAccessFile.writeBytes(line);
 index=0;
@@ -325,15 +339,12 @@ randomAccessFile.writeBytes(line);
 }
 line="}\n";
 randomAccessFile.writeBytes(line);
-
-
-
-// parameterized constructor starts (leave auto fields) 
+// parameterized  constructor starts (leave auto fields)
 for(counter=0,index=0;index<tableColumns.size();++index)
 {
 if(tableColumns.get(index).getIsAutoIncrementable()) counter++;
 }
-if(counter>0 && counter<tableColumns.size())
+if(counter>0  && counter<tableColumns.size())
 {
 line="public "+className+"(";
 randomAccessFile.writeBytes(line);
@@ -341,7 +352,7 @@ line="";
 index=0;
 while(index<properties.size())
 {
-if(tableColumns.get(index).getIsAutoIncrementable())
+if(tableColumns.get(index).getIsAutoIncrementable()) 
 {
 ++index;
 continue;
@@ -358,7 +369,7 @@ randomAccessFile.writeBytes(line);
 index=0;
 for(String prop:properties)
 {
-if(tableColumns.get(index).getIsAutoIncrementable())
+if(tableColumns.get(index).getIsAutoIncrementable()) 
 {
 line="this."+prop+"="+defaultValues.get(propertyTypes.get(index))+";\n";
 randomAccessFile.writeBytes(line);
@@ -372,9 +383,6 @@ index++;
 line="}\n";
 randomAccessFile.writeBytes(line);
 }
-
-
-
 // setter starts
 index=0;
 for(String prop:properties)
@@ -403,7 +411,7 @@ line="}\n";
 randomAccessFile.writeBytes(line);
 index++;
 }
-// equals starts 
+// equals starts
 line="public boolean equals("+className+" "+classPointerName+")\n";
 randomAccessFile.writeBytes(line);
 line="{\n";
@@ -429,8 +437,7 @@ index++;
 randomAccessFile.writeBytes(";\n");
 line="}\n";
 randomAccessFile.writeBytes(line);
-// compareTo starts 
-
+// compareTo starts
 randomAccessFile.writeBytes("public int compareTo("+className+" "+classPointerName+")\n");
 randomAccessFile.writeBytes("{\n");
 randomAccessFile.writeBytes("int ret;\n");
@@ -443,7 +450,7 @@ if(isPrimitive(pkType))
 {
 if(pkType.equals("boolean"))
 {
-randomAccessFile.writeBytes("ret=new Boolean(this."+pkName+").compareTo("+classPointerName+"."+pkName+");\n");
+randomAccessFile.writeBytes("ret=new  Boolean(this."+pkName+").compareTo("+classPointerName+"."+pkName+");\n");
 }
 else
 {
@@ -467,7 +474,8 @@ randomAccessFile.writeBytes("return ret;\n");
 randomAccessFile.writeBytes("}\n");
 // hashCode starts
 randomAccessFile.writeBytes("public int hashCode()\n");
-randomAccessFile.writeBytes("{\n"); randomAccessFile.writeBytes("return java.util.Objects.hash(");
+randomAccessFile.writeBytes("{\n");
+randomAccessFile.writeBytes("return java.util.Objects.hash(");
 index=0;
 while(index<primaryKeys.size())
 {
@@ -484,9 +492,8 @@ randomAccessFile.writeBytes("this."+pkName);
 }
 randomAccessFile.writeBytes(");\n");
 randomAccessFile.writeBytes("}\n");
-
-
 // optional, toString strats
+// do it yourself
 line="}\n"; // class ends
 randomAccessFile.writeBytes(line);
 randomAccessFile.close();
@@ -496,7 +503,7 @@ randomAccessFile.close();
 throw new Exception(t.getMessage());
 }
 }
-private static String getClassName(String tableName)
+private static String  getClassName(String  tableName)
 {
 String className="";
 //String []splits=tableName.split("[\\s_-]+");
@@ -504,7 +511,7 @@ String []splits=tableName.split("_");
 for(String part:splits)
 {
 if(part.trim().length()==0) continue;
-className+=part.substring(0,1).toUpperCase(); 
+className+=part.substring(0,1).toUpperCase();
 if(tableName.length()>0) className+=part.substring(1).toLowerCase();
 }
 return className;
@@ -517,10 +524,11 @@ String []splits=columnName.split("_");
 for(String part:splits)
 {
 if(part.trim().length()==0) continue;
-propertyName+=part.substring(0,1).toUpperCase(); 
+propertyName+=part.substring(0,1).toUpperCase();
 if(propertyName.length()>0) propertyName+=part.substring(1).toLowerCase();
 }
-if(propertyName.length()>1) return propertyName.substring(0,1).toLowerCase()+propertyName.substring(1);
+if(propertyName.length()>1) return propertyName.substring(0,1).toLowerCase()+propertyName.substring(
+1);
 else return propertyName.toLowerCase();
 }
 static private String getSetterName(String propertyName)
