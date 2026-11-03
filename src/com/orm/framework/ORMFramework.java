@@ -174,8 +174,7 @@ sqlStatements.hasAutoIncrementColumn=false;
 if(c.isAnnotationPresent(com.orm.annotation.CompositeKey.class))
 {
 com.orm.annotation.CompositeKey compositeKey;
-compositeKey=(com.orm.annotation.CompositeKey)c.getAnnotation(com.orm.annotation.CompositeKey.class)
-;
+compositeKey=(com.orm.annotation.CompositeKey)c.getAnnotation(com.orm.annotation.CompositeKey.class);
 String [] primaryKeyColumns=compositeKey.columns();
 for(String p:primaryKeyColumns) 
 {
@@ -184,9 +183,15 @@ for(Field fff:fields)
 {
 if(fff.isAnnotationPresent(com.orm.annotation.Column.class))
 {
-com.orm.annotation.Column  ccc;
-ccc=(com.orm.annotation.Column)fff.getAnnotation(com.orm.annotation.Column.class);
+com.orm.annotation.Column ccc=(com.orm.annotation.Column)fff.getAnnotation(com.orm.annotation.Column.class);
 if(ccc.name().equals(p)) 
+{
+primaryKeyFields.add(fff);
+}
+}
+else if(fff.isAnnotationPresent(com.orm.annotation.ForeignKey.class)){
+com.orm.annotation.ForeignKey ddd=(com.orm.annotation.ForeignKey)fff.getAnnotation(com.orm.annotation.ForeignKey.class);
+if(ddd.columnName().equals(p)) 
 {
 System.out.println("Adding "+fff.getName()+" from  "+c.getName()+" to primary key fields in case of composite key");
 primaryKeyFields.add(fff);
@@ -194,6 +199,7 @@ primaryKeyFields.add(fff);
 }
 }
 }
+	
 }
 else
 {
@@ -245,8 +251,7 @@ if(primaryKeys.contains(columnName)==false)
 {
 updateStatement+=columnName+"=?";
 methodsListForUpdateStatement=new ArrayList<>();
-methodsListForUpdateStatement.add(preparedStatementSetterMethodsMap.get(fields[i].getType().getName(
-)));
+methodsListForUpdateStatement.add(preparedStatementSetterMethodsMap.get(fields[i].getType().getName()));
 getterMethodName="get"+fieldName.substring(0,1).toUpperCase();
 if(fieldName.length()>0)
 {
@@ -297,7 +302,6 @@ for(String pk:primaryKeys)
 {
 whereClause+=(pk+"=? and ");
 methodsListForUpdateStatement=new ArrayList<>();
-System.out.println(c.getName()+"  pkfields : "+primaryKeyFields.size());
 field=primaryKeyFields.get(index);
 methodsListForUpdateStatement.add(preparedStatementSetterMethodsMap.get(field.getType().getName()));
 fieldName=field.getName();
